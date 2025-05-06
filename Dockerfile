@@ -26,12 +26,6 @@ RUN apt-get update \
        wget \
     && rm -rf /var/lib/apt/lists/*
 
-# Switch to non-root 'abc' user provided by LSIO baseimage
-USER abc
-
-# Working directory for source builds and conversions
-WORKDIR /config
-
 #####################################
 #  Build libheif from source       #
 #####################################
@@ -64,4 +58,10 @@ RUN wget -qO- https://download.imagemagick.org/ImageMagick/download/releases/Ima
   && ldconfig \
   && cd .. \
   && rm -rf ImageMagick-${IMAGEMAGICK_VERSION}
+
+# Switch to non-root 'abc' user provided by LSIO baseimage
+USER abc
+
+# Working directory for source builds and conversions
+WORKDIR /config
 
