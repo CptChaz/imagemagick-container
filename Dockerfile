@@ -16,7 +16,7 @@ RUN apt-get update \
        ca-certificates \
        curl \
        libheif-dev \
-       libjpeg-turbo8-dev \
+       libjpeg-dev \
        liblcms2-dev \
        libpng-dev \
        libtiff-dev \
