@@ -9,13 +9,15 @@ ENV PUID=${PUID} \
     PGID=${PGID} \
     TZ=${TZ}
 
-# Install build tools and development headers for HEIC, JPEG, ICC, PNG, TIFF, XML
+# Install build tools and development headers for HEIC, JPEG, ICC, PNG, TIFF, XML and AV1/HEVC decoding
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
        build-essential \
        ca-certificates \
        curl \
        libheif-dev \
+       libaom-dev \
+       libde265-dev \
        libjpeg-dev \
        liblcms2-dev \
        libpng-dev \
@@ -59,9 +61,6 @@ RUN wget -qO- https://download.imagemagick.org/ImageMagick/download/releases/Ima
   && cd .. \
   && rm -rf ImageMagick-${IMAGEMAGICK_VERSION}
 
-# Switch to non-root 'abc' user provided by LSIO baseimage
+# Switch to non-root 'abc' user for runtime and set working directory
 USER abc
-
-# Working directory for source builds and conversions
 WORKDIR /config
-
