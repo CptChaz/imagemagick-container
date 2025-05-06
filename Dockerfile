@@ -2,40 +2,48 @@
 # Image: cptchaz/imagemagick-container
 # -----------------------------------------------------------------------------
 
-# Use the LinuxServer baseimage (Debian Bullseye + s6 overlay)
+# Dockerfile
 FROM ghcr.io/linuxserver/baseimage-debian:bullseye
 
-LABEL maintainer="Cpt. Chaz <cptchaz5408@gmail.com>"
+LABEL maintainer="Cpt. Chaz <cptchaz5408@gmail.com>" \
+      org.opencontainers.image.version="7.1.1-47" \
+      org.opencontainers.image.description="ImageMagick with HEIC/AVIF support on a Debian+s6 base"
 
-# Install the build tools we need
-RUN apt-get update \
- && apt-get install -y --no-install-recommends \
-      build-essential \
-      ca-certificates \
- && rm -rf /var/lib/apt/lists/*
-
-# Build libheif (HEIC/AVIF support)
+# make builds noninteractive
+ENV DEBIAN_FRONTEND=noninteractive
 ENV LIBHEIF_VERSION=1.14.0
+ENV IM_VERSION=7.1.1-47
+
+# install build tools and runtime deps
+RUN apt-get update \
+  && apt-get install -y --no-install-recommends \
+    build-essential \
+    ca-certificates \
+    wget \
+    file \
+  && rm -rf /var/lib/apt/lists/*
+
+# build libheif for HEIC/AVIF support
 RUN wget -qO- "https://github.com/strukturag/libheif/releases/download/v${LIBHEIF_VERSION}/libheif-${LIBHEIF_VERSION}.tar.gz" \
     | tar xz \
- && cd libheif-${LIBHEIF_VERSION} \
- && ./configure --prefix=/usr/local \
- && make -j"$(nproc)" \
- && make install \
- && cd .. \
- && rm -rf libheif-${LIBHEIF_VERSION}
+  && cd libheif-${LIBHEIF_VERSION} \
+  && ./configure --prefix=/usr/local \
+  && make -j"$(nproc)" \
+  && make install \
+  && cd .. \
+  && rm -rf libheif-${LIBHEIF_VERSION}
 
-# Build ImageMagick itself
-ENV IMAGEMAGICK_VERSION=7.1.1-47
-RUN wget -qO- "https://download.imagemagick.org/ImageMagick/download/releases/ImageMagick-${IMAGEMAGICK_VERSION}.tar.gz" \
+# build ImageMagick from source with delegates
+RUN wget -qO- "https://download.imagemagick.org/ImageMagick/download/releases/ImageMagick-${IM_VERSION}.tar.gz" \
     | tar xz \
- && cd ImageMagick-${IMAGEMAGICK_VERSION} \
- && ./configure --prefix=/usr/local \
-    --with-heic=yes \
- && make -j"$(nproc)" \
- && make install \
- && cd .. \
- && rm -rf ImageMagick-${IMAGEMAGICK_VERSION}
+  && cd ImageMagick-${IM_VERSION} \
+  && ./configure \
+        --prefix=/usr/local \
+        --with-heic=yes \
+  && make -j"$(nproc)" \
+  && make install \
+  && cd .. \
+  && rm -rf ImageMagick-${IM_VERSION}
 
-# Switch to the config directory at runtime
+# drop back to config dir expected by linuxserver.io s6
 WORKDIR /config
