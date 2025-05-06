@@ -1,0 +1,29 @@
+name: Build and push Docker image
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'    # trigger on semver tags like v1.0.0
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Check out code
+      uses: actions/checkout@v4
+
+    - name: Log in to Docker Hub
+      uses: docker/login-action@v2
+      with:
+        username: ${{ secrets.CptChaz }}
+        password: ${{ secrets.610Aberdeen }}
+
+    - name: Build and push
+      uses: docker/build-push-action@v4
+      with:
+        context: .
+        push: true
+        tags: |
+          cptchaz/imagemagick-container:latest
+          cptchaz/imagemagick-container:${{ github.ref_name }}
