@@ -5,7 +5,10 @@
 # Dockerfile
 FROM ghcr.io/linuxserver/baseimage-debian:bullseye
 
-LABEL maintainer="Cpt. Chaz <cptchaz5408@gmail.com>"
+LABEL org.opencontainers.image.title="imagemagick-container" \
+      org.opencontainers.image.description="ImageMagick 7 Q16-HDRI container on Debian Bullseye (linuxserver.io base)" \
+      org.opencontainers.image.maintainer="Cpt. Chaz <cptchaz5408@gmail.com>" \
+      org.opencontainers.image.version="7.1.1-47"
 
 # versions
 ENV DEBIAN_FRONTEND=noninteractive \
