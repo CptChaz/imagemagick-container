@@ -31,3 +31,37 @@ USER abc
 
 # Working directory for source builds and conversions
 WORKDIR /config
+
+#####################################
+#  Build libheif from source       #
+#####################################
+ENV LIBHEIF_VERSION=1.14.0
+RUN wget -qO- https://github.com/strukturag/libheif/releases/download/v${LIBHEIF_VERSION}/libheif-${LIBHEIF_VERSION}.tar.gz \
+    | tar xz \
+  && cd libheif-${LIBHEIF_VERSION} \
+  && ./configure --prefix=/usr/local \
+  && make -j"$(nproc)" \
+  && make install \
+  && cd .. \
+  && rm -rf libheif-${LIBHEIF_VERSION}
+
+#####################################
+#  Build ImageMagick from source   #
+#####################################
+ENV IMAGEMAGICK_VERSION=7.1.1-47
+RUN wget -qO- https://download.imagemagick.org/ImageMagick/download/releases/ImageMagick-${IMAGEMAGICK_VERSION}.tar.gz \
+    | tar xz \
+  && cd ImageMagick-${IMAGEMAGICK_VERSION} \
+  && ./configure \
+       --with-heic=yes \
+       --with-jpeg=yes \
+       --with-lcms=yes \
+       --with-png=yes \
+       --with-tiff=yes \
+       --prefix=/usr/local \
+  && make -j"$(nproc)" \
+  && make install \
+  && ldconfig \
+  && cd .. \
+  && rm -rf ImageMagick-${IMAGEMAGICK_VERSION}
+
