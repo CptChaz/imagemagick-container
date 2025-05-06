@@ -1,0 +1,15 @@
+# Docker build artifacts
+**/build/
+*.tar.gz
+*.zip
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Editor swap files
+*~
+*.swp
+
+# Unraid cache/logs (if accidentally included)
+*.log
