@@ -2,46 +2,40 @@
 # Image: cptchaz/imagemagick-container
 # -----------------------------------------------------------------------------
 
-#  syntax=docker/dockerfile:1
+# Use the LinuxServer baseimage (Debian Bullseye + s6 overlay)
 FROM ghcr.io/linuxserver/baseimage-debian:bullseye
 
-# tell s6-init to leave the abc user at its default IDs (so it won't try to chown/chgrp)
-ENV PUID=911 \
-    PGID=911 \
-    TZ=Etc/UTC \
-    LIBHEIF_VERSION=1.14.0 \
-    IM_VERSION=7.1.1-47
+LABEL maintainer="Cpt. Chaz <cptchaz5408@gmail.com>"
 
-# install build dependencies (including system libheif so we don't have to hack around configure)
+# Install the build tools we need
 RUN apt-get update \
  && apt-get install -y --no-install-recommends \
       build-essential \
       ca-certificates \
-      wget \
-      pkg-config \
-      libjpeg-dev \
-      libpng-dev \
-      libtiff-dev \
-      libde265-dev \
-      libx265-dev \
-      libxml2-dev \
-      zlib1g-dev \
-      libheif-dev \
  && rm -rf /var/lib/apt/lists/*
 
-# download, configure, build & install ImageMagick
-RUN wget -qO- https://download.imagemagick.org/ImageMagick/download/releases/ImageMagick-${IM_VERSION}.tar.gz \
-      | tar xz \
- && cd ImageMagick-${IM_VERSION} \
+# Build libheif (HEIC/AVIF support)
+ENV LIBHEIF_VERSION=1.14.0
+RUN wget -qO- "https://github.com/strukturag/libheif/releases/download/v${LIBHEIF_VERSION}/libheif-${LIBHEIF_VERSION}.tar.gz" \
+    | tar xz \
+ && cd libheif-${LIBHEIF_VERSION} \
  && ./configure --prefix=/usr/local \
  && make -j"$(nproc)" \
  && make install \
- && ldconfig \
  && cd .. \
- && rm -rf ImageMagick-${IM_VERSION}
+ && rm -rf libheif-${LIBHEIF_VERSION}
 
+# Build ImageMagick itself
+ENV IMAGEMAGICK_VERSION=7.1.1-47
+RUN wget -qO- "https://download.imagemagick.org/ImageMagick/download/releases/ImageMagick-${IMAGEMAGICK_VERSION}.tar.gz" \
+    | tar xz \
+ && cd ImageMagick-${IMAGEMAGICK_VERSION} \
+ && ./configure --prefix=/usr/local \
+    --with-heic=yes \
+ && make -j"$(nproc)" \
+ && make install \
+ && cd .. \
+ && rm -rf ImageMagick-${IMAGEMAGICK_VERSION}
+
+# Switch to the config directory at runtime
 WORKDIR /config
-
-# leave the S6 /init entrypoint in place, and make 'magick' the default CMD
-# so you can do `docker run --rm cptchaz/imagemagick-container:latest -version`
-CMD ["magick"]
