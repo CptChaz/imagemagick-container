@@ -2,59 +2,46 @@
 # Image: cptchaz/imagemagick-container
 # -----------------------------------------------------------------------------
 
-# 1) Base image
+#  syntax=docker/dockerfile:1
 FROM ghcr.io/linuxserver/baseimage-debian:bullseye
 
-# 2) Build args & environment
-ARG PUID=99
-ARG PGID=100
-ARG TZ=Etc/UTC
-ENV PUID=${PUID} \
-    PGID=${PGID} \
-    TZ=${TZ}
+# tell s6-init to leave the abc user at its default IDs (so it won't try to chown/chgrp)
+ENV PUID=911 \
+    PGID=911 \
+    TZ=Etc/UTC \
+    LIBHEIF_VERSION=1.14.0 \
+    IM_VERSION=7.1.1-47
 
-# 3) Install compile‐time dependencies (incl. libheif from Debian)
+# install build dependencies (including system libheif so we don't have to hack around configure)
 RUN apt-get update \
-    && apt-get install -y --no-install-recommends \
-       build-essential \
-       ca-certificates \
-       curl \
-       libheif-dev \
-       libaom-dev \
-       libde265-dev \
-       libjpeg-dev \
-       liblcms2-dev \
-       libpng-dev \
-       libtiff-dev \
-       libxml2-dev \
-       pkg-config \
-       wget \
-    && rm -rf /var/lib/apt/lists/*
+ && apt-get install -y --no-install-recommends \
+      build-essential \
+      ca-certificates \
+      wget \
+      pkg-config \
+      libjpeg-dev \
+      libpng-dev \
+      libtiff-dev \
+      libde265-dev \
+      libx265-dev \
+      libxml2-dev \
+      zlib1g-dev \
+      libheif-dev \
+ && rm -rf /var/lib/apt/lists/*
 
-# -----------------------------------------------------------------------------
-# 4) Build ImageMagick from source with HEIC, JPEG, PNG, TIFF, LCMS support
-# -----------------------------------------------------------------------------
-ENV IMAGEMAGICK_VERSION=7.1.1-47
-RUN wget -qO- https://download.imagemagick.org/ImageMagick/download/releases/ImageMagick-${IMAGEMAGICK_VERSION}.tar.gz \
-    | tar xz \
-  && cd ImageMagick-${IMAGEMAGICK_VERSION} \
-  && ./configure \
-       --with-heic=yes \
-       --with-jpeg=yes \
-       --with-lcms=yes \
-       --with-png=yes \
-       --with-tiff=yes \
-       --prefix=/usr/local \
-  && make -j"$(nproc)" \
-  && make install \
-  && ldconfig \
-  && cd .. \
-  && rm -rf ImageMagick-${IMAGEMAGICK_VERSION}
+# download, configure, build & install ImageMagick
+RUN wget -qO- https://download.imagemagick.org/ImageMagick/download/releases/ImageMagick-${IM_VERSION}.tar.gz \
+      | tar xz \
+ && cd ImageMagick-${IM_VERSION} \
+ && ./configure --prefix=/usr/local \
+ && make -j"$(nproc)" \
+ && make install \
+ && ldconfig \
+ && cd .. \
+ && rm -rf ImageMagick-${IM_VERSION}
 
-# -----------------------------------------------------------------------------
-# 5) Switch to unprivileged user for runtime
-# -----------------------------------------------------------------------------
-USER abc
 WORKDIR /config
 
-# (No ENTRYPOINT/CMD here—will just run e.g. `magick` or whatever your wrapper does)
+# leave the S6 /init entrypoint in place, and make 'magick' the default CMD
+# so you can do `docker run --rm cptchaz/imagemagick-container:latest -version`
+CMD ["magick"]
