@@ -1,7 +1,11 @@
-# Use the LinuxServer.io Debian baseimage
+# -----------------------------------------------------------------------------
+# Image: cptchaz/imagemagick-container
+# -----------------------------------------------------------------------------
+
+# 1) Base image
 FROM ghcr.io/linuxserver/baseimage-debian:bullseye
 
-# Allow override of PUID/PGID and timezone (Unraid-friendly)
+# 2) Build args & environment
 ARG PUID=99
 ARG PGID=100
 ARG TZ=Etc/UTC
@@ -9,7 +13,7 @@ ENV PUID=${PUID} \
     PGID=${PGID} \
     TZ=${TZ}
 
-# Install build tools, libheif (from distro), JPEG, ICC, PNG, TIFF, XML and codecs
+# 3) Install compile‐time dependencies (incl. libheif from Debian)
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
        build-essential \
@@ -24,13 +28,12 @@ RUN apt-get update \
        libtiff-dev \
        libxml2-dev \
        pkg-config \
-       git \
        wget \
     && rm -rf /var/lib/apt/lists/*
 
-#####################################
-#  Build ImageMagick from source   #
-#####################################
+# -----------------------------------------------------------------------------
+# 4) Build ImageMagick from source with HEIC, JPEG, PNG, TIFF, LCMS support
+# -----------------------------------------------------------------------------
 ENV IMAGEMAGICK_VERSION=7.1.1-47
 RUN wget -qO- https://download.imagemagick.org/ImageMagick/download/releases/ImageMagick-${IMAGEMAGICK_VERSION}.tar.gz \
     | tar xz \
@@ -48,6 +51,10 @@ RUN wget -qO- https://download.imagemagick.org/ImageMagick/download/releases/Ima
   && cd .. \
   && rm -rf ImageMagick-${IMAGEMAGICK_VERSION}
 
-# Switch to non-root 'abc' user for runtime and set working directory
+# -----------------------------------------------------------------------------
+# 5) Switch to unprivileged user for runtime
+# -----------------------------------------------------------------------------
 USER abc
 WORKDIR /config
+
+# (No ENTRYPOINT/CMD here—will just run e.g. `magick` or whatever your wrapper does)
