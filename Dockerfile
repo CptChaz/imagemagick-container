@@ -9,7 +9,7 @@ ENV PUID=${PUID} \
     PGID=${PGID} \
     TZ=${TZ}
 
-# Install build tools and development headers for HEIC, JPEG, ICC, PNG, TIFF, XML and AV1/HEVC decoding
+# Install build tools, libheif (from distro), JPEG, ICC, PNG, TIFF, XML and codecs
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
        build-essential \
@@ -27,19 +27,6 @@ RUN apt-get update \
        git \
        wget \
     && rm -rf /var/lib/apt/lists/*
-
-#####################################
-#  Build libheif from source       #
-#####################################
-ENV LIBHEIF_VERSION=1.14.0
-RUN wget -qO- https://github.com/strukturag/libheif/releases/download/v${LIBHEIF_VERSION}/libheif-${LIBHEIF_VERSION}.tar.gz \
-    | tar xz \
-  && cd libheif-${LIBHEIF_VERSION} \
-  && ./configure --prefix=/usr/local \
-  && make -j"$(nproc)" \
-  && make install \
-  && cd .. \
-  && rm -rf libheif-${LIBHEIF_VERSION}
 
 #####################################
 #  Build ImageMagick from source   #
