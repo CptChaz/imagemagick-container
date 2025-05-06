@@ -1,0 +1,39 @@
+name: Build and Publish Docker Image
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'      # e.g. v1.0.0
+    branches:
+      - main         # also build on pushes to main if you like
+
+jobs:
+  docker:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4
+
+      - name: Set up QEMU (for multi-arch, optional)
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          registry: docker.io
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build & push
+        uses: docker/build-push-action@v4
+        with:
+          context: .
+          push: true
+          tags: |
+            cptchaz/imagemagick-container:latest
+            cptchaz/imagemagick-container:${{ github.ref_name }}
+
