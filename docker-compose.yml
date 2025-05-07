@@ -1,0 +1,11 @@
+#example compose file
+version: "3.8"
+services:
+  imagemagick:
+    image: cptchaz/imagemagick-container:latest
+    # bind-mount your host folders into the container
+    volumes:
+      - /mnt/user/Media:/media
+      - /mnt/user/appdata/imagemagick-container:/data
+    # optional: override the default command
+    command: magick -version
