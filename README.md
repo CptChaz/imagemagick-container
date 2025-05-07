@@ -32,6 +32,27 @@ git clone https://github.com/cptchaz/imagemagick-container.git
 cd imagmagick-container
 docker build -t cptchaz/imagemagick-container:latest .
 ```
+### Quick Start with Docker-Compose
+
+If you prefer to manage your container with Docker-Compose (or Unraid’s Compose plugin), drop this into `docker-compose.yml`:
+
+```
+yaml
+version: "3.8"
+services:
+  imagemagick:
+    image: cptchaz/imagemagick-container:latest
+    volumes:
+      - /mnt/user/Media:/media
+      - /mnt/user/appdata/imagemagick-container:/data
+```
+Then run:
+```
+docker-compose up -d
+```
+For Unrais:
+Simply fill in those same two mappings in the container -> Volume Mappings fields
+
 ## Docker Hub: 
 https://hub.docker.com/r/cptchaz/imagemagick-container
 
