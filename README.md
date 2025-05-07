@@ -50,8 +50,9 @@ Then run:
 ```
 docker-compose up -d
 ```
-For Unrais:
-Simply fill in those same two mappings in the container -> Volume Mappings fields
+For Unraid:
+Until the container hits CA, do an extended search for dockerhub results in CA to find this container. Skip the default unraid config.
+Simply fill in those same two mappings listed above, in the container -> Volume Mappings fields
 
 ## Docker Hub: 
 https://hub.docker.com/r/cptchaz/imagemagick-container
